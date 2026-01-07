@@ -88,7 +88,7 @@ if( HEADER_PHASE)
    endforeach()
 
    install( FILES ${REMAINING_HEADER} DESTINATION "include/${PROJECT_NAME}")
-   # install( FILES ${INSTALL_CMAKE_INCLUDES} DESTINATION "include/${PROJECT_NAME}/cmake")
+   install( FILES ${INSTALL_CMAKE_INCLUDES} DESTINATION "include/${PROJECT_NAME}/cmake")
 
    # manually maintained!
    install( FILES ${DLFCN_WIN32_PUBLIC_HEADERS}  DESTINATION "include")
