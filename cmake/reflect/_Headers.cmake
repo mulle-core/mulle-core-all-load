@@ -24,7 +24,7 @@ src
 # contents selected with patternfile ??-header--private-generated-headers
 #
 set( PRIVATE_GENERATED_HEADERS
-src/reflect/_mulle-core-startup-include-private.h
+src/reflect/_mulle-core-all-load-include-private.h
 )
 
 #
@@ -52,7 +52,7 @@ src/mulle-stacktrace/_mulle-stacktrace-include-private.h
 # contents selected with patternfile ??-header--public-generated-headers
 #
 set( PUBLIC_GENERATED_HEADERS
-src/reflect/_mulle-core-startup-include.h
+src/reflect/_mulle-core-all-load-include.h
 )
 
 #
@@ -74,7 +74,7 @@ src/mulle-atexit/mulle-atexit.h
 src/mulle-atexit/_mulle-atexit-include.h
 src/mulle-atinit/mulle-atinit.h
 src/mulle-atinit/_mulle-atinit-include.h
-src/mulle-core-startup.h
+src/mulle-core-all-load.h
 src/mulle-dlfcn/mulle-dlfcn.h
 src/mulle-dlfcn/_mulle-dlfcn-include.h
 src/mulle-dlfcn/_mulle-dlfcn-versioncheck.h

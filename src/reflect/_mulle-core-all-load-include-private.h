@@ -11,8 +11,8 @@
  *
  */
 
-#ifndef _mulle_core_startup_include_private_h__
-#define _mulle_core_startup_include_private_h__
+#ifndef _mulle_core_all_load_include_private_h__
+#define _mulle_core_all_load_include_private_h__
 
 // To remove the following dependency (headers and library) completely:
 //   `mulle-sde dependency remove libbacktrace`

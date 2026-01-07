@@ -1,8 +1,8 @@
 {
    "settings":
    {
-      "sublimegdb_workingdir": "${folder:kitchen/Debug/mulle-core-startup}",
-      "sublimegdb_commandline": "mulle-gdb --interpreter=mi kitchen/Debug/mulle-core-startup",
+      "sublimegdb_workingdir": "${folder:kitchen/Debug/mulle-core-all-load}",
+      "sublimegdb_commandline": "mulle-gdb --interpreter=mi kitchen/Debug/mulle-core-all-load",
    },
    "folders":
    [

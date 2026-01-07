@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# Usage: ./mulle-generate-all-load-constructor <library.(so|a)> [output.c]
+#
+# To produce force load C file for a static library like mulle-core-all-load.a:
+#
+# ``` bash
+# mulle-sde craft
+# ./mulle-generate-all-load-constructor `mulle-sde product`
+# ```
+
+if [ $# -lt 1 ]; then
+    echo "Usage: $0 <library.(so|a)> [output.c]"
+    exit 1
+fi
+
+LIB="$1"
+OUTPUT="${2:-force_load_paranoid.c}"
+
+if [ ! -f "$LIB" ]; then
+    echo "Error: Library '$LIB' not found."
+    exit 1
+fi
+
+# Detect shared vs static
+if file "$LIB" | grep -q "shared"; then
+    NM_FLAGS="-D"
+    echo "Detected shared library → using nm -D"
+else
+    NM_FLAGS=""
+    echo "Detected static library → using plain nm"
+fi
+
+echo "Extracting global defined symbols from $LIB..."
+
+# Get address type symbol — only globally defined
+MAP=$(nm $NM_FLAGS --defined-only "$LIB" | grep -E ' [TBDRCVGW] ')
+
+if [ -z "$MAP" ]; then
+    echo "No global defined symbols found."
+    exit 1
+fi
+
+COUNT=$(echo "$MAP" | wc -l)
+echo "Found $COUNT symbols. Generating $OUTPUT..."
+
+cat <<EOF > "$OUTPUT"
+#include <mulle-c11/mulle-c11.h>
+
+
+MULLE_C_CONSTRUCTOR(force_load_and_verify_all_symbols)
+static int   force_load_and_verify_all_symbols(void)
+{
+   int   fail;    // protect against adversarial compiler writers
+
+EOF
+
+# Generate extern declarations
+echo "$MAP" | while read addr type sym; do
+    if [[ "$type" == "T" ]]; then
+        echo "   extern void    $sym(void);" >> "$OUTPUT"
+    else
+        echo "   extern char    $sym;" >> "$OUTPUT"
+    fi
+done
+
+echo "" >> "$OUTPUT"
+
+first=1
+echo "$MAP" | while read addr type sym; do
+    if [ $first -eq 1 ]; then
+        echo "   fail  = (void *) &$sym == NULL;" >> "$OUTPUT"
+        first=0
+    else
+        echo "   fail |= (void *) &$sym == NULL;" >> "$OUTPUT"
+    fi
+done
+
+cat <<EOF >> "$OUTPUT"
+
+   return( fail);
+}
+EOF
+
+echo "Compile normally — no special linker flags needed:"
+echo "  cc your_program.c $OUTPUT -o your_program $LIB"

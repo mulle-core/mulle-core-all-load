@@ -13,7 +13,7 @@ endif()
 set( SOURCES
 src/mulle-atexit/mulle-atexit.c
 src/mulle-atinit/mulle-atinit.c
-src/mulle-core-startup.c
+src/mulle-core-all-load.c
 src/mulle-dlfcn/mulle-dlfcn.c
 src/mulle-stacktrace/mulle-stacktrace-backtrace.c
 src/mulle-stacktrace/mulle-stacktrace.c

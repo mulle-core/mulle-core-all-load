@@ -8,7 +8,7 @@ export PROJECT_TYPE="none"
 #
 #
 #
-export PROJECT_NAME="mulle-core-startup"
+export PROJECT_NAME="mulle-core-all-load"
 
 
 #

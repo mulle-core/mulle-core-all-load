@@ -1,5 +1,5 @@
-#ifndef mulle__core__startup_include_h__
-#define mulle__core__startup_include_h__
+#ifndef mulle__core__all__load_include_h__
+#define mulle__core__all__load_include_h__
 
 // THIS FILE WILL BE CLOBBERED BY mulle-sde test craft
 
@@ -17,7 +17,7 @@
 #include <mulle-container/mulle-container.h>
 #include <mulle-container-debug/mulle-container-debug.h>
 #include <mulle-core/mulle-core.h>
-#include <mulle-core-startup/mulle-core-startup.h>
+#include <mulle-core-all-load/mulle-core-all-load.h>
 #include <mulle-data/mulle-data.h>
 #include <mulle-dlfcn/mulle-dlfcn.h>
 #include <mulle-dtostr/mulle-dtostr.h>
