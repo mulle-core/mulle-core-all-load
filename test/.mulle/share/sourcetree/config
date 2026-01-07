@@ -1,0 +1,1 @@
+mulle-core-all-load;${MULLE__CORE__ALL__LOAD_NODETYPE:-tar};;7FFCD075-26E9-4410-99A5-8273E3674B55;${MULLE__CORE__ALL__LOAD_URL:-https://github.com/nat/mulle-core-all-load/archive/${MULLE_TAG}.tar.gz};${MULLE__CORE__ALL__LOAD_BRANCH};${MULLE__CORE__ALL__LOAD_TAG:-latest};;

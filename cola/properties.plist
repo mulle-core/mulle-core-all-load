@@ -1,0 +1,60 @@
+{
+   project =
+   {
+      description="🌋 Almagamated library of mulle-atexit + friends";
+      domain="github";
+      language="c";
+      dialect="c";
+      name="mulle-core-startup";
+      user="mulle-core";
+      repo="mulle-core-startup";
+      homepage="https://github.com/mulle-core/mulle-core-startup";
+      license="UNLICENSED";
+   };
+   dependencies =
+   (
+      {
+         description="🌋 Almagamated library of mulle-core + mulle-concurrent + mulle-c";
+         domain="github";
+         name="mulle-core";
+         repo="mulle-core";
+         url="https://github.com/mulle-core/mulle-core";
+         user="mulle-core";
+      }
+   );
+   amalgamated =
+   (
+      {
+         description="🤱🏼 Compatibility library for deterministic initializers";
+         domain="clib";
+         name="src/mulle-atinit";
+         repo="mulle-atinit@*";
+         url="https://github.com/mulle-core/mulle-atinit@*";
+         user="mulle-core";
+      },
+      {
+         description="👼 Compatibility library to fix atexit";
+         domain="clib";
+         name="src/mulle-atexit";
+         repo="mulle-atexit@*";
+         url="https://github.com/mulle-core/mulle-atexit@*";
+         user="mulle-core";
+      },
+      {
+         description="♿️ Shared library helper";
+         domain="clib";
+         name="src/mulle-dlfcn";
+         repo="mulle-dlfcn@*";
+         url="https://github.com/mulle-core/mulle-dlfcn@*";
+         user="mulle-core";
+      },
+      {
+         description="👣 Stracktrace support for various OS";
+         domain="clib";
+         name="src/mulle-stacktrace";
+         repo="mulle-stacktrace@*";
+         url="https://github.com/mulle-core/mulle-stacktrace@*";
+         user="mulle-core";
+      }
+   );
+}
