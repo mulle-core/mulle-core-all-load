@@ -116,6 +116,27 @@ endif()
 # use LIBRARY_LINK_TARGET for linker options
 if( LINK_PHASE)
    target_link_options( "${LIBRARY_LINK_TARGET}" PUBLIC)
+   
+   # Auto-apply force-link flags for external consumers using add_subdirectory()
+   # This is needed because this is a force-linkable initialization library that
+   # contains code that must be linked even if not directly referenced.
+   # Without this, consumers using git submodule + add_subdirectory() would need
+   # to manually add platform-specific force-link flags.
+   if( NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+      if( APPLE)
+         target_link_options( "${LIBRARY_LINK_TARGET}" INTERFACE 
+            "-force_load" "$<TARGET_FILE:${LIBRARY_LINK_TARGET}>"
+         )
+      elseif( MSVC)
+         target_link_options( "${LIBRARY_LINK_TARGET}" INTERFACE 
+            "-WHOLEARCHIVE:$<TARGET_FILE:${LIBRARY_LINK_TARGET}>"
+         )
+      else()
+         target_link_options( "${LIBRARY_LINK_TARGET}" INTERFACE 
+            "-Wl,--whole-archive" "$<TARGET_FILE:${LIBRARY_LINK_TARGET}>" "-Wl,--no-whole-archive"
+         )
+      endif()
+   endif()
 endif()
 
 include( InstallLibrary)

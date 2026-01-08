@@ -14,7 +14,7 @@ export PROJECT_NAME="mulle-core-all-load"
 #
 #
 #
-export TEST_PROJECT_NAME="mulle-core-startup"
+export TEST_PROJECT_NAME="mulle-core-all-load"
 
 
 #
