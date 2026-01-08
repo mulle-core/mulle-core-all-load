@@ -123,7 +123,13 @@ if( LINK_PHASE)
    # Headers may still be a problem though
    # MEMO: should we do this in Library.cmake unconditionally ?
    if( NOT BUILD_SHARED_LIBS)
-      target_link_libraries( "${LIBRARY_LINK_TARGET}" PUBLIC mulle-core)
+      target_link_libraries( "${LIBRARY_LINK_TARGET}" PUBLIC
+               ${DEPENDENCY_LIBRARIES}
+               ${DEPENDENCY_FRAMEWORKS}
+               ${OPTIONAL_DEPENDENCY_LIBRARIES}
+               ${OPTIONAL_DEPENDENCY_FRAMEWORKS}
+               ${OS_SPECIFIC_LIBRARIES}
+               ${OS_SPECIFIC_FRAMEWORKS})
    endif()
 
    # MEMO: no worky

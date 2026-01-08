@@ -15,18 +15,48 @@
 #define _mulle_core_all_load_include_h__
 
 // To remove the following dependency (headers and library) completely:
-//   `mulle-sde dependency remove mulle-core`
-// (Use BF506244-6FB2-4368-984F-65E0A270B2D2 instead of mulle-core, if there are duplicate entries)
+//   `mulle-sde dependency remove mulle-c11`
+// (Use B6F44310-4FE2-4231-B81E-B98D87B95B36 instead of mulle-c11, if there are duplicate entries)
 //
 // You can tweak the following #include with these commands:
-//    remove #include: `mulle-sde dependency mark mulle-core no-header`
-//    rename              : `mulle-sde dependency|library set mulle-core include whatever.h`
-//    reorder             : `mulle-sde dependency move mulle-core <up|down>`
-//    toggle #include: `mulle-sde dependency mark mulle-core [no-]import`
-//    toggle public       : `mulle-sde dependency mark mulle-core [no-]public`
-//    toggle optional     : `mulle-sde dependency mark mulle-core [no-]require`
-//    remove for platform : `mulle-sde dependency mark mulle-core no-platform-<uname>`
+//    remove #include: `mulle-sde dependency mark mulle-c11 no-header`
+//    rename              : `mulle-sde dependency|library set mulle-c11 include whatever.h`
+//    reorder             : `mulle-sde dependency move mulle-c11 <up|down>`
+//    toggle #include: `mulle-sde dependency mark mulle-c11 [no-]import`
+//    toggle public       : `mulle-sde dependency mark mulle-c11 [no-]public`
+//    toggle optional     : `mulle-sde dependency mark mulle-c11 [no-]require`
+//    remove for platform : `mulle-sde dependency mark mulle-c11 no-platform-<uname>`
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
-#include <mulle-core/mulle-core.h>   // mulle-core
+#include <mulle-c11/mulle-c11.h>   // mulle-c11
+
+// To remove the following dependency (headers and library) completely:
+//   `mulle-sde dependency remove mulle-allocator`
+// (Use 9423A2B7-634B-482D-8220-9D7F91796539 instead of mulle-allocator, if there are duplicate entries)
+//
+// You can tweak the following #include with these commands:
+//    remove #include: `mulle-sde dependency mark mulle-allocator no-header`
+//    rename              : `mulle-sde dependency|library set mulle-allocator include whatever.h`
+//    reorder             : `mulle-sde dependency move mulle-allocator <up|down>`
+//    toggle #include: `mulle-sde dependency mark mulle-allocator [no-]import`
+//    toggle public       : `mulle-sde dependency mark mulle-allocator [no-]public`
+//    toggle optional     : `mulle-sde dependency mark mulle-allocator [no-]require`
+//    remove for platform : `mulle-sde dependency mark mulle-allocator no-platform-<uname>`
+//        (use `mulle-sourcetree-to-c --unames` to list known values)
+#include <mulle-allocator/mulle-allocator.h>   // mulle-allocator
+
+// To remove the following dependency (headers and library) completely:
+//   `mulle-sde dependency remove mulle-thread`
+// (Use AAC885CB-5E4C-401B-A1AA-CD9A74FF4125 instead of mulle-thread, if there are duplicate entries)
+//
+// You can tweak the following #include with these commands:
+//    remove #include: `mulle-sde dependency mark mulle-thread no-header`
+//    rename              : `mulle-sde dependency|library set mulle-thread include whatever.h`
+//    reorder             : `mulle-sde dependency move mulle-thread <up|down>`
+//    toggle #include: `mulle-sde dependency mark mulle-thread [no-]import`
+//    toggle public       : `mulle-sde dependency mark mulle-thread [no-]public`
+//    toggle optional     : `mulle-sde dependency mark mulle-thread [no-]require`
+//    remove for platform : `mulle-sde dependency mark mulle-thread no-platform-<uname>`
+//        (use `mulle-sourcetree-to-c --unames` to list known values)
+#include <mulle-thread/mulle-thread.h>   // mulle-thread
 
 #endif
