@@ -116,7 +116,21 @@ endif()
 # use LIBRARY_LINK_TARGET for linker options
 if( LINK_PHASE)
    target_link_options( "${LIBRARY_LINK_TARGET}" PUBLIC)
-   
+
+   #
+   # The idea is this is for non mulle-sde consumers to get the dependency
+   # to mulle-core right. In shared lib configuration this is not necessary
+   # Headers may still be a problem though
+   # MEMO: should we do this in Library.cmake unconditionally ?
+   if( NOT BUILD_SHARED_LIBS)
+      target_link_libraries( "${LIBRARY_LINK_TARGET}" PUBLIC mulle-core)
+   endif()
+
+   # MEMO: no worky
+   # target_include_directories( "${LIBRARY_LINK_TARGET}" INTERFACE
+   #  ${CMAKE_CURRENT_BINARY_DIR}/include
+   # )
+
    # Auto-apply force-link flags for external consumers using add_subdirectory()
    # This is needed because this is a force-linkable initialization library that
    # contains code that must be linked even if not directly referenced.

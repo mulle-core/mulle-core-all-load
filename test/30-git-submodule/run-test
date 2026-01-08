@@ -1,0 +1,181 @@
+#! /usr/bin/env mulle-bash
+#! MULLE_BASHFUNCTIONS_VERSION=6.6.3
+# shellcheck shell=bash
+#
+#
+#  run-test.sh
+#
+#  Copyright (c) 2026 nat
+#  All rights reserved.
+#
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions are met:
+#
+#  Redistributions of source code must retain the above copyright notice, this
+#  list of conditions and the following disclaimer.
+#
+#  Redistributions in binary form must reproduce the above copyright notice,
+#  this list of conditions and the following disclaimer in the documentation
+#  and/or other materials provided with the distribution.
+#
+#  Neither the name of <ORGANIZATION> nor the names of its contributors
+#  may be used to endorse or promote products derived from this software
+#  without specific prior written permission.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+#  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+#  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+#  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+#  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+#  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+#  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+#  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#  POSSIBILITY OF SUCH DAMAGE.
+#
+
+[ "${TRACE}" = 'YES' -o "${RUN_TEST_TRACE}" = 'YES' ] && set -x  && : "$0" "$@"
+
+### >> START OF mulle-boot.sh >>
+### << END OF mulle-boot.sh <<
+
+#
+# Versioning of this script
+#
+MULLE_EXECUTABLE_VERSION="0.0.0"
+
+
+### >> START OF mulle-bashfunctions-embed.sh >>
+### << END OF mulle-bashfunctions-embed.sh <<
+
+print_flags()
+{
+   echo "   -f    : force operation"
+
+   ##
+   ## ADD YOUR FLAGS DESCRIPTIONS HERE
+   ##
+
+   options_technical_flags_usage                 "         : "
+}
+
+
+usage()
+{
+   [ $# -ne 0 ] && log_error "$*"
+
+
+   cat <<EOF >&2
+Usage:
+   run-test [flags]
+
+   ##
+   ## ADD YOUR USAGE DESCRIPTION HERE
+   ##
+
+Flags:
+EOF
+   print_flags | LC_ALL=C sort >&2
+
+   exit 1
+}
+
+
+main()
+{
+   #
+   # simple option/flag handling
+   #
+   local OPTION_VALUE
+
+   while [ $# -ne 0 ]
+   do
+      if options_technical_flags "$1"
+      then
+         shift
+         continue
+      fi
+
+      case "$1" in
+         -f|--force)
+            MULLE_FLAG_MAGNUM_FORCE='YES'
+         ;;
+
+         -h*|--help|help)
+            usage
+         ;;
+
+         --value)
+            [ $# -eq 1 ] && usage "missing argument to $1"
+            shift
+
+            OPTION_VALUE="$1"
+         ;;
+
+         --version)
+            printf "%s\n" "${MULLE_EXECUTABLE_VERSION}"
+            exit 0
+         ;;
+
+
+         ##
+         ## ADD YOUR FLAGS HERE
+         ##
+
+         -*)
+            usage "Unknown flag \"$1\""
+         ;;
+
+         *)
+            break
+         ;;
+      esac
+
+      shift
+   done
+
+   options_setup_trace "${MULLE_TRACE}" && set -x
+
+   set -e
+
+   # Test that git submodule works for external users
+   echo "Testing git submodule integration..."
+
+   # Save project root directory
+   PROJECT_ROOT=$(pwd)/../..
+
+   # Create temp directory for test
+   TMPDIR=$(exekutor mktemp -d)
+   exekutor cd "$TMPDIR"
+
+   # Clone this project (simulating external user)
+   exekutor git clone "$PROJECT_ROOT" test-project
+   exekutor cd test-project
+
+   # Initialize submodules
+   exekutor git submodule update --init --recursive
+
+   # Verify mulle-core submodule exists
+   if [ ! -d "mulle-core" ]; then
+       echo "FAIL: mulle-core submodule not found"
+       exit 1
+   fi
+
+   # Test basic cmake build with submodule
+   exekutor mkdir build
+   exekutor cd build
+   exekutor cmake .. -DCMAKE_BUILD_TYPE=Debug
+   exekutor make
+
+   echo "SUCCESS: Git submodule integration works"
+
+   # Cleanup
+   exekutor cd /
+   exekutor rm -rf "$TMPDIR"
+}
+
+main "$@"
+
+
