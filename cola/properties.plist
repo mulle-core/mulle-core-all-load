@@ -1,25 +1,49 @@
 {
    project =
    {
-      description="🌋 Almagamated library of mulle-atexit + friends";
+      description="🛸 mulle-core-all-load does something";
       domain="github";
       language="c";
       dialect="c";
-      name="mulle-core-startup";
+      name="mulle-core-all-load";
       user="mulle-core";
-      repo="mulle-core-startup";
-      homepage="https://github.com/mulle-core/mulle-core-startup";
-      license="UNLICENSED";
+      repo="mulle-core-all-load";
+      homepage="https://github.com/mulle-core/mulle-core-all-load";
+      license="BSD-3-Clause";
    };
    dependencies =
    (
       {
-         description="🌋 Almagamated library of mulle-core + mulle-concurrent + mulle-c";
+         description="A C library that may be linked into a C/C++ program to produce symbolic backtraces";
          domain="github";
-         name="mulle-core";
-         repo="mulle-core";
-         url="https://github.com/mulle-core/mulle-core";
+         name="libbacktrace";
+         repo="libbacktrace";
+         url="https://github.com/mulle-core/libbacktrace";
          user="mulle-core";
+      },
+      {
+         description="🔀 Cross-platform C compiler glue (and some cpp conveniences)";
+         domain="github";
+         name="mulle-c11";
+         repo="mulle-c11";
+         url="https://github.com/mulle-c/mulle-c11";
+         user="mulle-c";
+      },
+      {
+         description="🔄 Flexible C memory allocation scheme";
+         domain="github";
+         name="mulle-allocator";
+         repo="mulle-allocator";
+         url="https://github.com/mulle-c/mulle-allocator";
+         user="mulle-c";
+      },
+      {
+         description="🔠 Cross-platform thread/mutex/tss/atomic operations in C";
+         domain="github";
+         name="mulle-thread";
+         repo="mulle-thread";
+         url="https://github.com/mulle-concurrent/mulle-thread";
+         user="mulle-concurrent";
       }
    );
    amalgamated =
@@ -54,6 +78,17 @@
          name="src/mulle-stacktrace";
          repo="mulle-stacktrace@*";
          url="https://github.com/mulle-core/mulle-stacktrace@*";
+         user="mulle-core";
+      }
+   );
+   embedded =
+   (
+      {
+         description="dlfcn-win32 [![Build status](https://ci.appveyor.com/api/projects/status/celmbkqj0k41fk04/branch/master?svg=true)](https://ci.appveyor.com/project/dlfcn-win32/dlfcn-win32/branch/master)";
+         domain="github";
+         name="dlfcn-win32";
+         repo="dlfcn-win32";
+         url="https://github.com/mulle-core/dlfcn-win32";
          user="mulle-core";
       }
    );
