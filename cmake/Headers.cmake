@@ -83,11 +83,11 @@ AFTER SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}"
 #
 if( WIN32)
    set( DLFCN_WIN32_PUBLIC_HEADERS
-      dlfcn-win32/src/dlfcn.h
+      dlfcn-win32/dlfcn.h
    )
 
    include_directories(
-      AFTER SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/dlfcn-win32/src"
+      AFTER SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/dlfcn-win32"
    )
 endif()
 
