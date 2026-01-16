@@ -151,11 +151,11 @@ main()
    exekutor cd "$TMPDIR"
 
    # Clone this project (simulating external user)
-   exekutor git clone "$PROJECT_ROOT" test-project
+   exekutor git clone "$PROJECT_ROOT" test-project >&2
    exekutor cd test-project
 
    # Initialize submodules
-   exekutor git submodule update --init --recursive
+   exekutor git submodule update --init --recursive >&2
 
    # Verify mulle-core submodule exists
    if [ ! -d "mulle-core" ]; then
@@ -164,11 +164,12 @@ main()
    fi
 
    # Test basic cmake build with submodule
-   exekutor mkdir build
-   exekutor cd build
-   exekutor cmake .. -DCMAKE_BUILD_TYPE=Debug
-   exekutor make
-
+   (
+      exekutor mkdir build && \
+      exekutor cd build && \
+      exekutor cmake .. -DCMAKE_BUILD_TYPE=Debug && \
+      exekutor make
+   ) >&2
    echo "SUCCESS: Git submodule integration works"
 
    # Cleanup

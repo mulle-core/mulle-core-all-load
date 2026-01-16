@@ -1,4 +1,4 @@
-#include <mulle-core-startup/mulle-core-startup.h>
+#include "include.h"
 
 static int init_called = 0;
 static int exit_called = 0;

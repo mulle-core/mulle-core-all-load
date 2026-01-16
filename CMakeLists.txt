@@ -124,6 +124,7 @@ if( LINK_PHASE)
    # MEMO: should we do this in Library.cmake unconditionally ?
    if( NOT BUILD_SHARED_LIBS)
       target_link_libraries( "${LIBRARY_LINK_TARGET}" PUBLIC
+               ${ALL_LOAD_DEPENDENCY_LIBRARIES}
                ${DEPENDENCY_LIBRARIES}
                ${DEPENDENCY_FRAMEWORKS}
                ${OPTIONAL_DEPENDENCY_LIBRARIES}
