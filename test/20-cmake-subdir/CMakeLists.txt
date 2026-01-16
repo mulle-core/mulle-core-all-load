@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.19)
 project(test_external_consumer)
 
 # Simulate external consumer using add_subdirectory
-add_subdirectory(../.. mulle-core-all-load-build)
+add_subdirectory( ../.. mulle-core-all-load_build)
 
 # Check if the target exists after add_subdirectory
 if(TARGET mulle-core-all-load)
@@ -23,3 +23,8 @@ endif()
 # Create a simple test executable
 add_executable(test_consumer test_consumer.c)
 target_link_libraries(test_consumer mulle-core-all-load)
+
+# Copy executable to expected location for mulle-test
+add_custom_command(TARGET test_consumer POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:test_consumer> ${CMAKE_BINARY_DIR}/cmake-subdir.exe
+)

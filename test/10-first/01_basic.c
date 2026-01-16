@@ -2,7 +2,7 @@
 
 int main( void)
 {
-   mulle_printf( "mulle-core-startup links and runs now\n");
+   mulle_printf( "mulle-core-all-load links and runs now\n");
    
    return( 0);
 }
