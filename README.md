@@ -25,12 +25,13 @@ Force-linkable amalgamated library for mulle-core initialization libraries
 
 ## Add
 
-**This project is a component of the [mulle-core](//github.com/mulle-core/mulle-core) library. As such you usually will *not* add or install it
-individually, unless you specifically do not want to link against
-`mulle-core`.**
+There are various methods how to get mulle-core-all-load into your project.
+One common denominator is that you will
+`#include <mulle-core-all-load/mulle-core-all-load.h>` in your sources and link
+with `-lmulle-core-all-load`.
 
 
-### Add as an individual component
+### Add as a dependency with mulle-sde
 
 Use [mulle-sde](//github.com/mulle-sde) to add mulle-core-all-load to your project:
 
@@ -38,15 +39,43 @@ Use [mulle-sde](//github.com/mulle-sde) to add mulle-core-all-load to your proje
 mulle-sde add github:mulle-core/mulle-core-all-load
 ```
 
+This library does not include [mulle-atinit](//github.com/mulle-core/mulle-atinit)
+and [mulle-atexit](//github.com/mulle-core/mulle-atexit) and
+[mulle-testallocator](//github.com/mulle-core/mulle-testallocator). If you
+add these libraries, it is important that mulle-core is added before them.
+
+
+
 To only add the sources of mulle-core-all-load with dependency
 sources use [clib](https://github.com/clibs/clib):
 
+
+### Add sources to your project with clib
 
 ``` sh
 clib install --out src/mulle-core mulle-core/mulle-core-all-load
 ```
 
-Add `-isystem src/mulle-core` to your `CFLAGS` and compile all the sources that were downloaded with your project.
+Add `-isystem src/mulle-core` to your `CFLAGS` and compile all the
+sources that were downloaded with your project. (In **cmake** add
+`include_directories( BEFORE SYSTEM src/mulle-core)` to your `CMakeLists.txt`
+file).
+
+
+
+### Add as subproject with cmake and git
+
+``` bash
+git submodule add https://github.com/mulle-core/mulle-core-all-load.git stash/mulle-core-all-load
+git submodule update --init --recursive
+```
+
+Add this to your `CMakeLists.txt`:
+
+``` cmake
+add_subdirectory( stash/mulle-core-all-load)
+target_link_libraries( ${PROJECT_NAME} PRIVATE mulle-core-all-load)
+```
 
 
 ## Install
