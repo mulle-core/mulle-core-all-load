@@ -48,7 +48,7 @@ uint32_t   mulle_dlfcn_get_version( void);
 #  define MULLE_RTLD_DEFAULT   0
 # else
 #  ifdef __APPLE__
-#   define RTLD_DEFAULT    ((void *) -2)
+#   define MULLE_RTLD_DEFAULT    ((void *) -2)
 #  else
 #   error "need to define MULLE_RTLD_DEFAULT on this platform"
 #  endif
