@@ -69,13 +69,47 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    # Set installation directory based on OS
+    - name: Set install directory
+      id: set-install-dir
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]
+        then
+          INSTALL_DIR="$GITHUB_WORKSPACE\\usr"
+          CMAKE_INSTALL_DIR="$(sed 's/\\/\//g' <<< "$INSTALL_DIR")"
+          MULLE_CORE_SRC_DIR="$GITHUB_WORKSPACE\\tmp\\mulle-core"
+        else
+          INSTALL_DIR="$GITHUB_WORKSPACE/usr"
+          CMAKE_INSTALL_DIR="${INSTALL_DIR}"
+          MULLE_CORE_SRC_DIR="$GITHUB_WORKSPACE/tmp/mulle-core"
+        fi
+        echo "INSTALL_DIR=$INSTALL_DIR" >> $GITHUB_OUTPUT
+        echo "CMAKE_INSTALL_DIR=$CMAKE_INSTALL_DIR" >> $GITHUB_OUTPUT
+        echo "MULLE_CORE_SRC_DIR=$MULLE_CORE_SRC_DIR" >> $GITHUB_OUTPUT
+        mkdir -p "$INSTALL_DIR"
+
+    - name: Clone mulle-core repository
+      run: |
+        git clone https://github.com/mulle-core/mulle-core.git "${{steps.set-install-dir.outputs.MULLE_CORE_SRC_DIR}}"
+
+    - name: Configure, build and install mulle-core with CMake
+      working-directory: "${{steps.set-install-dir.outputs.MULLE_CORE_SRC_DIR}}"
+      env:
+        CC: ${{ matrix.compiler }}
+        CFLAGS: ${{ matrix.cflags }}
+      run: |
+        cmake ${{ matrix.cmake-args }} -B build -DCMAKE_INSTALL_PREFIX="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -DCMAKE_PREFIX_PATH="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -DCMAKE_BUILD_TYPE="${{ matrix.build-config || 'Release' }}"
+        cmake --build build --config "${{ matrix.build-config || 'Release' }}"
+        cmake --install build --config "${{ matrix.build-config || 'Release' }}"
+
     - name: Install packages (Windows)
       if: runner.os == 'Windows'
       run: |
         choco install --no-progress ninja ${{ matrix.packages }}
 
     - name: Generate project files
-      run: cmake -S ${{ matrix.src-dir || '.' }} -B ${{ matrix.build-dir || '.' }} ${{ matrix.cmake-args }} -D CMAKE_BUILD_TYPE=${{ matrix.build-config || 'Release' }}
+      run: cmake -S ${{ matrix.src-dir || '.' }} -B ${{ matrix.build-dir || '.' }} ${{ matrix.cmake-args }} -DMULLE_SDK_PATH="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -DCMAKE_PREFIX_PATH="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -D CMAKE_BUILD_TYPE=${{ matrix.build-config || 'Release' }}
       env:
         CC: ${{ matrix.compiler }}
         CFLAGS: ${{ matrix.cflags }}
