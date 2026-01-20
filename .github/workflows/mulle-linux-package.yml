@@ -68,6 +68,12 @@ jobs:
             [ ! -d .mulle/etc/env ] || ls -l .mulle/etc/env/environment*.sh
             mulle-sde environment
 
+    - name: Fetch dependencies
+      run: mulle-sde fetch
+
+    - name: Build dependencies
+      run: mulle-sde craft --release
+
     - name: Build Debian Package
       run:  |
             mkdir -p package
@@ -76,7 +82,9 @@ jobs:
             cmake -DCMAKE_BUILD_TYPE="Release" \
                   -DCMAKE_SYSTEM_PROCESSOR=${{ matrix.arch }} \
                   -DCMAKE_C_COMPILER=${{ matrix.arch == 'aarch64' && 'aarch64-linux-gnu-gcc' || 'gcc' }} \
-                  -DCMAKE_CXX_COMPILER=${{ matrix.arch == 'aarch64' && 'aarch64-linux-gnu-g++' || 'g++' }} ..
+                  -DCMAKE_CXX_COMPILER=${{ matrix.arch == 'aarch64' && 'aarch64-linux-gnu-g++' || 'g++' }} \
+                  -DMULLE_SDK_PATH="${GITHUB_WORKSPACE}/dependency" \
+                  -DCMAKE_PREFIX_PATH="${GITHUB_WORKSPACE}/dependency" ..
             cpack -G DEB
             package="mulle-core-all-load_${MULLE_CORE_VERSION}-${{ matrix.arch }}.deb"
             mv *.deb "${package}"
