@@ -1,143 +1,144 @@
 # mulle-atinit Library Documentation for AI
-<!-- Keywords: lifecycle, initialization -->
+<!-- Keywords: init, callbacks, priority, constructor, mergesort, thread, C -->
 
 ## 1. Introduction & Purpose
 
-`mulle-atinit` is a C library that provides a deterministic, priority-based mechanism for running initializers, primarily for shared libraries. On many platforms (e.g., ELF-based systems like Linux), the execution order of constructor functions in different shared libraries is not guaranteed. This can lead to crashes if one library's initializer depends on another library that has not yet been initialized.
-
-`mulle-atinit` solves this problem by providing a centralized registry where libraries can defer their initialization functions. These functions are then executed in a predictable order based on assigned priorities before `main` is called. This library is intended to be statically linked into the main executable to act as the single coordinator for all library initializations.
+- mulle-atinit provides a simple, deterministic mechanism to register and run "init" callbacks with explicit priorities. It ensures callbacks added across translation units are invoked in a stable, prioritized order at program/library startup (constructor phase).
+- Solves ordering and portability issues for ELF constructors and static initializers, and supplies a deterministic fallback for platforms/links where constructor ordering is unreliable.
+- Key features: priority-based registration, stable sort at run-time, thread-safe registration, test hooks.
+- Depends on mulle-thread (mutex/once) and mulle-dlfcn for optional dynamic lookup on Windows.
 
 ## 2. Key Concepts & Design Philosophy
 
-- **Deferred Initialization:** Instead of executing code directly in a `__attribute__((constructor))`, a shared library calls `mulle_atinit` to register an initialization function. The actual execution is deferred.
-- **Centralized Execution:** A constructor in the `mulle-atinit` library itself is responsible for collecting all registered initializers and running them. Because `mulle-atinit` is linked into the main executable, its constructor runs after all shared libraries have been loaded but before `main` begins.
-- **Priority System:** Each registered initializer has a priority. Initializers are executed in ascending order of their priority value, allowing for explicit control over the initialization sequence. Libraries with lower priority numbers are initialized first.
-- **Static Linking Requirement:** For the system to work, `mulle-atinit` must be statically linked into the final executable, and linker flags must be used to ensure its symbols are exported and the entire library is included. This guarantees there is only one central registry for initializers.
+- Registration vs. Execution: callers register callbacks (function + userinfo + priority + comment); execution occurs later in a single run that sorts callbacks by priority and invokes them.
+- Stability: uses a stable mergesort so equal priorities preserve insertion order.
+- Thread-safety: a mutex protects the callback list; initialization uses a thread-once mechanism. Callbacks added while callbacks are running are appended and executed in the same run (no reprioritization).
+- Minimal runtime: lightweight data structure (array of prioritized_callback) with realloc growth; sorting deferred to execution time to keep registration fast.
 
 ## 3. Core API & Data Structures
 
-The API is minimal and is fully defined in `mulle-atinit.h`. It does not expose any public data structures.
+### 3.1. [mulle-atinit.h]
 
-### 3.1. `mulle-atinit.h`
+#### `typedef void mulle_atinit_function_t( void (*f)( void *), void *userinfo, int priority, char *comment );`
+- Purpose: function type for the registration function (exposed for dynamic lookup on Windows).
 
-#### Initializer Registration
-- `mulle_atinit(function, userinfo, priority, comment)`: Registers an initializer function to be called before `main`.
-  - `function`: A function pointer of type `void (*)(void *)` that will be executed.
-  - `userinfo`: A `void *` pointer that will be passed as the argument to the `function`.
-  - `priority`: An `int` that determines the execution order. Lower numbers execute first.
-  - `comment`: A `char *` pointer for an optional comment/description of the initializer. Can be `NULL`.
+#### `uint32_t mulle_atinit_get_version( void );`
+- Returns a packed version number. Inline helpers exist for major/minor/patch.
 
-#### Global Control
-- `mulle_atinit_is_global(void)`: A weakly-linked function that allows libraries to detect if a global `mulle-atinit` instance is present in the main executable. This helps avoid conflicts if multiple versions are present.
+#### `void _mulle_atinit( void (*f)( void *), void *userinfo, int priority, char *comment );`
+- Purpose: Core registration function that appends the callback to the internal list in a thread-safe way.
+- Behavior: If executed after callbacks already ran, zero-priority callbacks may be executed immediately to preserve semantics for late registration.
+
+#### `static inline void mulle_atinit( void (*f)( void *), void *userinfo, int priority, char *comment );`
+- Purpose: Inline wrapper that forwards to _mulle_atinit. On Windows with dynamic builds it resolves symbol via dlsym-like lookup.
+- Usage: Preferred public API for registering callbacks.
+
+#### Test-only hooks (available when built with MULLE_TEST):
+- `void mulle_atinit_test_run_callbacks( void );` — run callbacks manually (used by tests).
+- `void mulle_atinit_reset( void );` — reset internal state for deterministic tests.
+
+### 3.2. [internal data structures in mulle-atinit.c]
+
+#### `struct prioritized_callback`
+- Fields: int priority; void (*f)(void *); void *userinfo; char *comment;
+- Purpose: internal representation of a single registered callback.
+
+#### Internal module-scope `vars` (static)
+- Contains a mutex, current count `n`, allocated `size`, and pointer to array `calls`.
+- Lifecycle: initialized via thread-once; `mulle_atinit_load` (constructor) triggers a run which sorts and executes callbacks.
+
+#### Sorting & Execution functions
+- `_prioritized_callback_mergesort( ...)` — stable mergesort; O(n log n) on execution.
+- `mulle_atinit_add_callback(...)` — low-level append with amortized O(1) realloc growth.
+- `mulle_atinit_run_callbacks()` — sorts the list and invokes callbacks in priority order.
+- `mulle_atinit_load()` — constructor that ensures _mulle_atinit is called once and then runs callbacks at startup.
 
 ## 4. Performance Characteristics
 
-- **Registration:** Registering an initializer is a fast, thread-safe operation. It involves a mutex lock and an allocation to store the registration info.
-- **Execution:** At application startup, there is a one-time cost to sort and execute the registered initializers. The time is proportional to `N * log(N)` for sorting (where N is the number of initializers) plus the execution time of the initializers themselves.
-- **Runtime Overhead:** After the initial startup phase, the library has zero runtime overhead.
-- **Thread-Safety:** The registration process is thread-safe.
+- Registration: amortized O(1) for appends; occasional O(n) when realloc grows.
+- Execution: sorting cost O(n log n) (stable mergesort) plus O(n) to invoke callbacks.
+- Memory: array-backed storage that grows (initial capacity ~32). Trade-off: fast registration vs. deferred sort overhead.
+- Thread-safety: registration and execution use a mutex; initialization uses thread-once. Not lock-free.
 
 ## 5. AI Usage Recommendations & Patterns
 
-- **Linking:** It is **critical** that `mulle-atinit` is statically linked into the main executable. Linker flags must be used to ensure the entire library is included and its symbols are exported.
-  - **Linux:** `-Wl,--whole-archive -lmulle-atinit -Wl,--no-whole-archive -Wl,--export-dynamic`
-  - **macOS:** `-Wl,-force_load,path/to/libmulle-atinit.a`
-- **Shared Library Usage:** In a shared library that needs controlled initialization, create a standard constructor function. Inside this constructor, call `mulle_atinit` to register the *actual* initialization function.
-
-  ```c
-  #include <mulle-atinit/mulle-atinit.h>
-
-  static void my_library_init(void *userinfo) {
-      // Actual initialization code here...
-  }
-
-  __attribute__((constructor))
-  static void register_initializer(void) {
-      // Defer the real initialization with a specific priority.
-      mulle_atinit(my_library_init, NULL, 100, NULL);
-  }
-  ```
-- **Priority Management:** Establish a clear convention for priority numbers across your project's libraries. For example:
-  - `0-99`: Core libraries with no dependencies.
-  - `100-199`: Mid-level libraries.
-  - `200+`: High-level or plugin libraries.
-- **Main Executable:** The main executable itself does not need to do anything special other than linking correctly. The `mulle-atinit` constructor handles everything automatically before `main` is called.
+- Best Practices:
+  - Use `mulle_atinit( func, userinfo, priority, "comment")` to register callbacks.
+  - Prefer non-zero priorities to control ordering; equal priorities keep insertion order.
+  - Do not access internal fields of callbacks; use API only.
+  - For unit tests, build with `MULLE_TEST` to use `mulle_atinit_test_run_callbacks()` and `mulle_atinit_reset()`.
+- Common Pitfalls:
+  - Do not expect registration order alone to determine execution order if priorities differ.
+  - Avoid long-running or blocking operations inside callbacks; they run during startup.
+  - Dynamic/shared library builds are intentionally restricted; mulle-atinit is intended to be statically linked (MULLE_INCLUDE_DYNAMIC is not supported).
+- Idiomatic Usage: register simple init routines that set up library-wide state, register destructors elsewhere if needed.
 
 ## 6. Integration Examples
 
-### Example 1: Initializing Libraries in a Specific Order
+### Example 1: Simple registration (preserve insertion order)
 
-This example simulates three shared libraries (X, Y, Z) that need to be initialized in the order Z -> Y -> X. Library Z has the lowest priority, so it runs first.
-*Source: `test/20_dynamic/`*
-
-**Library Z (`z.c`)**
 ```c
 #include <mulle-atinit/mulle-atinit.h>
 #include <stdio.h>
 
-static void init_z(void *userinfo) {
-    printf("Initializing Z\n");
+static void   a( void *s)
+{
+   printf( "%s: \"%s\"\n", __FUNCTION__, (char *) s);
 }
 
-__attribute__((constructor))
-static void register_init(void) {
-    mulle_atinit(init_z, NULL, 100, NULL); // Priority 100
+static void   b( void *s)
+{
+   printf( "%s: \"%s\"\n", __FUNCTION__, (char *) s);
+}
+
+int
+main( void)
+{
+   mulle_atinit( a, "first", 0, NULL);
+   mulle_atinit( b, "second", 0, NULL);
+   return( 0);
 }
 ```
 
-**Library Y (`y.c`)**
+- Build note: This registers callbacks to be invoked by the library constructor; linking statically ensures the constructor runs.
+
+### Example 2: Prioritized callbacks
+
 ```c
 #include <mulle-atinit/mulle-atinit.h>
 #include <stdio.h>
 
-static void init_y(void *userinfo) {
-    printf("Initializing Y\n");
+static void   print( void *s)
+{
+   printf( "%s\n", (char *) s);
 }
 
-__attribute__((constructor))
-static void register_init(void) {
-    mulle_atinit(init_y, NULL, 200, NULL); // Priority 200
-}
-```
+int
+main( void)
+{
+   /* higher priority runs earlier (larger numeric value executes first) */
+   mulle_atinit_add_callback( print, "1", 100, NULL);
+   mulle_atinit_add_callback( print, "5",   0, NULL);
+   mulle_atinit_add_callback( print, "2", 100, NULL);
 
-**Library X (`x.c`)**
-```c
-#include <mulle-atinit/mulle-atinit.h>
-#include <stdio.h>
+   /* For tests, run manually (only with MULLE_TEST build): */
+   /* mulle_atinit_test_run_callbacks(); */
 
-static void init_x(void *userinfo) {
-    printf("Initializing X\n");
-}
-
-__attribute__((constructor))
-static void register_init(void) {
-    mulle_atinit(init_x, NULL, 300, NULL); // Priority 300
+   return( 0);
 }
 ```
 
-**Main Executable (`main.c`)**
-```c
-#include <stdio.h>
-
-int main(void) {
-    printf("main() called\n");
-    return 0;
-}
-```
-
-When compiled and run (with `libx`, `liby`, `libz` linked dynamically and `libmulle-atinit` linked statically to `main`), the output will be:
-
-```
-Initializing Z
-Initializing Y
-Initializing X
-main() called
-```
-
-This demonstrates that the initializers were executed in the correct, priority-based order before `main` was entered.
+- The provided tests (test/10-static) show how priorities and stability behave.
 
 ## 7. Dependencies
 
-- `mulle-thread`
-- `mulle-dlfcn`
+- mulle-concurrent/mulle-thread (mutex, thread-once)
+- mulle-core/mulle-dlfcn (dynamic symbol lookup on some platforms)
+
+## 8. Shortcut
+
+- There was no prior TOC.md in asset/dox/ (this file is added to that path). The source of truth for the public API is `src/mulle-atinit.h`; tests live in `test/` and demonstrate usage patterns.
+
+
+
 
