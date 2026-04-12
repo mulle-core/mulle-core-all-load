@@ -31,6 +31,8 @@ jobs:
       run:  env | sort
 
     - uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - uses: mulle-sde/github-ci@v2
 
