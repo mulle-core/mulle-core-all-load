@@ -97,6 +97,7 @@ Install the requirements:
 | [mulle-c11](https://github.com/mulle-c/mulle-c11)             | 🔀 Cross-platform C compiler glue (and some cpp conveniences)
 | [mulle-allocator](https://github.com/mulle-c/mulle-allocator)             | 🔄 Flexible C memory allocation scheme
 | [mulle-thread](https://github.com/mulle-concurrent/mulle-thread)             | 🔠 Cross-platform thread/mutex/tss/atomic operations in C
+| [mulle-dlfcn](https://github.com/mulle-core/mulle-dlfcn)             | ♿️ Shared library helper
 
 Download the latest [tar](https://github.com/mulle-core/mulle-core-all-load/archive/refs/tags/latest.tar.gz) or [zip](https://github.com/mulle-core/mulle-core-all-load/archive/refs/tags/latest.zip) archive and unpack it.
 
