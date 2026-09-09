@@ -11,56 +11,52 @@ endif()
 # contents are derived from the file locations
 
 set( INCLUDE_DIRS
-mulle-core-all-load/generic
-mulle-core-all-load/mulle-atexit
-mulle-core-all-load/mulle-atinit
-mulle-core-all-load/mulle-stacktrace
-mulle-core-all-load/reflect
-mulle-core-all-load
+src/mulle-atexit
+src/mulle-atinit
+src/mulle-stacktrace
+src/mulle-core-all-load
 )
 
 #
 # contents selected with patternfile ??-header--private-generic-headers
 #
 set( PRIVATE_GENERIC_HEADERS
-mulle-core-all-load/generic/include-private.h
-mulle-core-all-load/mulle-atexit/include-private.h
-mulle-core-all-load/mulle-atinit/include-private.h
-mulle-core-all-load/mulle-stacktrace/include-private.h
+src/mulle-atexit/include-private.h
+src/mulle-atinit/include-private.h
+src/mulle-stacktrace/include-private.h
 )
 
 #
 # contents selected with patternfile ??-header--private-headers
 #
 set( PRIVATE_HEADERS
-mulle-core-all-load/mulle-atexit/_mulle-atexit-include-private.h
-mulle-core-all-load/mulle-atinit/_mulle-atinit-include-private.h
-mulle-core-all-load/mulle-stacktrace/_mulle-stacktrace-include-private.h
-mulle-core-all-load/reflect/_mulle-core-all-load-include-private.h
+src/mulle-atexit/_mulle-atexit-include-private.h
+src/mulle-atinit/_mulle-atinit-include-private.h
+src/mulle-stacktrace/_mulle-stacktrace-include-private.h
 )
 
 #
 # contents selected with patternfile ??-header--public-generic-headers
 #
 set( PUBLIC_GENERIC_HEADERS
-mulle-core-all-load/generic/include.h
-mulle-core-all-load/mulle-atexit/include.h
-mulle-core-all-load/mulle-atinit/include.h
-mulle-core-all-load/mulle-stacktrace/include.h
+src/mulle-atexit/include.h
+src/mulle-atinit/include.h
+src/mulle-core-all-load/include.h
+src/mulle-stacktrace/include.h
 )
 
 #
 # contents selected with patternfile ??-header--public-headers
 #
 set( PUBLIC_HEADERS
-mulle-core-all-load/mulle-atexit/mulle-atexit.h
-mulle-core-all-load/mulle-atexit/_mulle-atexit-include.h
-mulle-core-all-load/mulle-atinit/mulle-atinit.h
-mulle-core-all-load/mulle-atinit/_mulle-atinit-include.h
-mulle-core-all-load/mulle-core-all-load.h
-mulle-core-all-load/mulle-stacktrace/mulle-stacktrace.h
-mulle-core-all-load/mulle-stacktrace/_mulle-stacktrace-include.h
-mulle-core-all-load/mulle-stacktrace/_mulle-stacktrace-versioncheck.h
-mulle-core-all-load/reflect/_mulle-core-all-load-include.h
+src/mulle-atexit/mulle-atexit.h
+src/mulle-atexit/_mulle-atexit-include.h
+src/mulle-atinit/mulle-atinit.h
+src/mulle-atinit/_mulle-atinit-include.h
+src/mulle-core-all-load/mulle-core-all-load.h
+src/mulle-core-all-load/_mulle-core-all-load-include.h
+src/mulle-stacktrace/mulle-stacktrace.h
+src/mulle-stacktrace/_mulle-stacktrace-include.h
+src/mulle-stacktrace/_mulle-stacktrace-versioncheck.h
 )
 
