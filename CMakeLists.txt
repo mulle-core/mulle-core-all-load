@@ -53,7 +53,7 @@ include( Files)
 # include( IDESupport OPTIONAL)
 
 unset( SUB_PROJECT_NAMES)
-file( GLOB SUB_PROJECT_PATHS mulle-core-all-load/mulle-*)
+file( GLOB SUB_PROJECT_PATHS src/mulle-*)
 
 foreach( SUB_PROJECT_PATH ${SUB_PROJECT_PATHS})
    if( IS_DIRECTORY "${SUB_PROJECT_PATH}")
@@ -138,26 +138,26 @@ if( LINK_PHASE)
    #  ${CMAKE_CURRENT_BINARY_DIR}/include
    # )
 
-   # Auto-apply force-link flags for external consumers using add_subdirectory()
-   # This is needed because this is a force-linkable initialization library that
-   # contains code that must be linked even if not directly referenced.
-   # Without this, consumers using add_subdirectory() would need
-   # to manually add platform-specific force-link flags.
-   if( NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-      if( APPLE)
-         target_link_options( "${LIBRARY_LINK_TARGET}" INTERFACE 
-            "-force_load" "$<TARGET_FILE:${LIBRARY_LINK_TARGET}>"
-         )
-      elseif( MSVC)
-         target_link_options( "${LIBRARY_LINK_TARGET}" INTERFACE 
-            "-WHOLEARCHIVE:$<TARGET_FILE:${LIBRARY_LINK_TARGET}>"
-         )
-      else()
-         target_link_options( "${LIBRARY_LINK_TARGET}" INTERFACE 
-            "-Wl,--whole-archive" "$<TARGET_FILE:${LIBRARY_LINK_TARGET}>" "-Wl,--no-whole-archive"
-         )
-      endif()
-   endif()
+   # Automatic force-loading is intentionally disabled for external CMake
+   # consumers. They decide explicitly which libraries to link and how to
+   # force-load them. The former implementation is retained below for
+   # reference.
+   #
+   # if( NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+   #    if( APPLE)
+   #       target_link_options( "${LIBRARY_LINK_TARGET}" INTERFACE
+   #          "-force_load" "$<TARGET_FILE:${LIBRARY_LINK_TARGET}>"
+   #       )
+   #    elseif( MSVC)
+   #       target_link_options( "${LIBRARY_LINK_TARGET}" INTERFACE
+   #          "-WHOLEARCHIVE:$<TARGET_FILE:${LIBRARY_LINK_TARGET}>"
+   #       )
+   #    else()
+   #       target_link_options( "${LIBRARY_LINK_TARGET}" INTERFACE
+   #          "-Wl,--whole-archive" "$<TARGET_FILE:${LIBRARY_LINK_TARGET}>" "-Wl,--no-whole-archive"
+   #       )
+   #    endif()
+   # endif()
 endif()
 
 include( InstallLibrary)
@@ -185,8 +185,8 @@ if( LINK_PHASE)
 endif()
 
 if( LINK_PHASE)
-   include( InstallCMakeInclude)
-   include( InstallCMakePackage)
+   include( AddSubdirectorySupport)
+   include( FindPackageSupport)
 endif()
 
 include( FinalOutput OPTIONAL)

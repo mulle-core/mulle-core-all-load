@@ -5,7 +5,7 @@
 #
 # Disable generation of this file with:
 #
-# mulle-sde environment set MULLE_SOURCETREE_TO_CMAKE_DEPENDENCIES_FILE DISABLE
+# mulle-sde environment --global set MULLE_SOURCETREE_TO_CMAKE_DEPENDENCIES_FILE DISABLE
 #
 if( MULLE_TRACE_INCLUDE)
    message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
@@ -38,7 +38,11 @@ foreach( _TMP_MULLE__C11_HEADER_TARGET_TARGET mulle-core mulle-c11)
       break()
    endif()
 endforeach()
-if( NOT MULLE__C11_HEADER AND NOT MULLE__C11_HEADER_TARGET)
+if( MULLE__C11_HEADER_TARGET)
+   set( MULLE__C11_HEADER ${MULLE__C11_HEADER_TARGET})
+endif()
+
+if( NOT MULLE__C11_HEADER)
    find_file( MULLE__C11_HEADER NAMES
       mulle-c11.h mulle-core/mulle-core.h mulle-c11/mulle-c11.h
       NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_FIND_ROOT_PATH
@@ -49,24 +53,25 @@ if( NOT MULLE__C11_HEADER AND NOT MULLE__C11_HEADER_TARGET)
       )
    endif()
    message( STATUS "MULLE__C11_HEADER is ${MULLE__C11_HEADER}")
+endif()
 
+#
+# Add MULLE__C11_HEADER to HEADER_ONLY_LIBRARIES list.
+# Disable with: `mulle-sourcetree mark mulle-c11 no-cmake-add`
+#
+set( HEADER_ONLY_LIBRARIES
+   ${MULLE__C11_HEADER}
+   ${HEADER_ONLY_LIBRARIES}
+)
+if( MULLE__C11_HEADER)
    #
-   # Add MULLE__C11_HEADER to HEADER_ONLY_LIBRARIES list.
-   # Disable with: `mulle-sourcetree mark mulle-c11 no-cmake-add`
+   # Inherit ObjC loader and link dependency info.
+   # Disable with: `mulle-sourcetree mark mulle-c11 no-cmake-inherit`
    #
-   set( HEADER_ONLY_LIBRARIES
-      ${MULLE__C11_HEADER}
-      ${HEADER_ONLY_LIBRARIES}
-   )
-   if( MULLE__C11_HEADER)
-      #
-      # Inherit ObjC loader and link dependency info.
-      # Disable with: `mulle-sourcetree mark mulle-c11 no-cmake-inherit`
-      #
-      get_filename_component( _TMP_MULLE__C11_ROOT "${MULLE__C11_HEADER}" DIRECTORY)
-      get_filename_component( _TMP_MULLE__C11_NAME "${_TMP_MULLE__C11_ROOT}" NAME)
-      get_filename_component( _TMP_MULLE__C11_ROOT "${_TMP_MULLE__C11_ROOT}" DIRECTORY)
-      get_filename_component( _TMP_MULLE__C11_ROOT "${_TMP_MULLE__C11_ROOT}" DIRECTORY)
+   get_filename_component( _TMP_MULLE__C11_ROOT "${MULLE__C11_HEADER}" DIRECTORY)
+   get_filename_component( _TMP_MULLE__C11_NAME "${_TMP_MULLE__C11_ROOT}" NAME)
+   get_filename_component( _TMP_MULLE__C11_ROOT "${_TMP_MULLE__C11_ROOT}" DIRECTORY)
+   get_filename_component( _TMP_MULLE__C11_ROOT "${_TMP_MULLE__C11_ROOT}" DIRECTORY)
       #
       # Search for "Definitions.cmake" and "DependenciesAndLibraries.cmake" to include.
       # Disable with: `mulle-sourcetree mark mulle-c11 no-cmake-dependency`
@@ -100,10 +105,9 @@ if( NOT MULLE__C11_HEADER AND NOT MULLE__C11_HEADER_TARGET)
             message( STATUS "${_TMP_MULLE__C11_DIR} not found")
          endif()
       endforeach()
-   else()
-      # Disable with: `mulle-sourcetree mark mulle-c11 no-require`
-      message( SEND_ERROR "MULLE__C11_HEADER was not found in mulle-c11.h mulle-core/mulle-core.h mulle-c11/mulle-c11.h")
-   endif()
+else()
+   # Disable with: `mulle-sourcetree mark mulle-c11 no-require`
+   message( SEND_ERROR "MULLE__C11_HEADER was not found in mulle-c11.h mulle-core/mulle-core.h mulle-c11/mulle-c11.h")
 endif()
 
 
@@ -134,7 +138,7 @@ if( NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
                backtrace
                NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_FIND_ROOT_PATH
             )
-            if( NOT LIBBACKTRACE_LIBRARY AND NOT DEPENDENCY_IGNORE_SYSTEM_LIBARIES)
+            if( NOT LIBBACKTRACE_LIBRARY AND NOT DEPENDENCY_IGNORE_SYSTEM_LIBRARIES)
                find_library( LIBBACKTRACE_LIBRARY NAMES
                   ${MULLE_PREFERRED_LIBRARY_PREFIX}backtrace${CMAKE_DEBUG_POSTFIX}${MULLE_PREFERRED_LIBRARY_SUFFIX}
                   ${MULLE_PREFERRED_LIBRARY_PREFIX}backtrace${MULLE_PREFERRED_LIBRARY_SUFFIX}
@@ -234,7 +238,7 @@ else()
             mulle-allocator
             NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_FIND_ROOT_PATH
          )
-         if( NOT MULLE__ALLOCATOR_LIBRARY AND NOT DEPENDENCY_IGNORE_SYSTEM_LIBARIES)
+         if( NOT MULLE__ALLOCATOR_LIBRARY AND NOT DEPENDENCY_IGNORE_SYSTEM_LIBRARIES)
             find_library( MULLE__ALLOCATOR_LIBRARY NAMES
                ${MULLE_PREFERRED_LIBRARY_PREFIX}mulle-core${CMAKE_DEBUG_POSTFIX}${MULLE_PREFERRED_LIBRARY_SUFFIX}
                ${MULLE_PREFERRED_LIBRARY_PREFIX}mulle-core${MULLE_PREFERRED_LIBRARY_SUFFIX}
@@ -347,7 +351,7 @@ else()
             mulle-thread
             NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_FIND_ROOT_PATH
          )
-         if( NOT MULLE__THREAD_LIBRARY AND NOT DEPENDENCY_IGNORE_SYSTEM_LIBARIES)
+         if( NOT MULLE__THREAD_LIBRARY AND NOT DEPENDENCY_IGNORE_SYSTEM_LIBRARIES)
             find_library( MULLE__THREAD_LIBRARY NAMES
                ${MULLE_PREFERRED_LIBRARY_PREFIX}mulle-core${CMAKE_DEBUG_POSTFIX}${MULLE_PREFERRED_LIBRARY_SUFFIX}
                ${MULLE_PREFERRED_LIBRARY_PREFIX}mulle-core${MULLE_PREFERRED_LIBRARY_SUFFIX}
@@ -460,7 +464,7 @@ else()
             mulle-dlfcn
             NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_FIND_ROOT_PATH
          )
-         if( NOT MULLE__DLFCN_LIBRARY AND NOT DEPENDENCY_IGNORE_SYSTEM_LIBARIES)
+         if( NOT MULLE__DLFCN_LIBRARY AND NOT DEPENDENCY_IGNORE_SYSTEM_LIBRARIES)
             find_library( MULLE__DLFCN_LIBRARY NAMES
                ${MULLE_PREFERRED_LIBRARY_PREFIX}mulle-core${CMAKE_DEBUG_POSTFIX}${MULLE_PREFERRED_LIBRARY_SUFFIX}
                ${MULLE_PREFERRED_LIBRARY_PREFIX}mulle-core${MULLE_PREFERRED_LIBRARY_SUFFIX}
