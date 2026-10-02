@@ -33,7 +33,7 @@ git submodule update --init
 
 REM Create CMakeLists.txt
 (
- echo cmake_minimum_required^(VERSION 3.15^)
+ echo cmake_minimum_required^(VERSION 3.24^)
  echo project^(submodule-test^)
  echo add_subdirectory^(mulle-core^)
  echo add_subdirectory^(mulle-core-all-load^)

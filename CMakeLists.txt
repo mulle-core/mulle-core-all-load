@@ -6,9 +6,18 @@
 # A convenient way to add a new source file is:
 #    mulle-sde add mulle-core-all-load/foo.c
 #
-cmake_minimum_required( VERSION 3.19...99.99) # for REAL_PATH
+cmake_minimum_required( VERSION 3.24...99.99) # for REAL_PATH and $<LINK_LIBRARY:...>
 
 project( mulle-core-all-load VERSION 0.8.2 LANGUAGES C)
+
+# mulle-core-all-load is a force-linkable initialization library: its
+# atinit/atexit constructors must be whole-archived into every consumer, even
+# when no symbol of it is referenced directly. Objective-C projects want this
+# ON. A plain C project that does not rely on load-time constructors should
+# turn it OFF, so its consumers do not pull in the whole archive.
+option( MULLE_LIBRARY_FORCE_LINK
+        "Force-link mulle-core-all-load into consumers"
+        ON)
 
 # Common compiler flags for all platforms and compilers
 set(COMMON_C_FLAGS "")
@@ -113,9 +122,59 @@ if( NOT MSVC)
    target_compile_options( "${LIBRARY_COMPILE_TARGET}" PUBLIC -Wunused)
 endif()
 
+#
+# The sub-projects above are amalgamated: their sources are compiled straight
+# into this library. Each one marks its exported symbols with
+# <SUB_PROJECT>_GLOBAL / <SUB_PROJECT>_GLOBAL_VAR, and those expand to
+# dllexport only while the sub-project's own <SUB_PROJECT>_BUILD is defined.
+#
+# A standalone build of a sub-project defines it (Library.cmake derives it from
+# the project name), but an amalgamation compiles the vendored sources without
+# it, so their headers declared the globals as dllimport inside the very
+# library that defines them. On Windows such a reference goes through an import
+# thunk, the DLL ends up importing symbols it also defines, and llvm-mingw
+# refuses to export those: they vanish from both the export table and the
+# .dll.a, and consumers fail to link with
+#
+#    undefined symbol: __declspec(dllimport) NSFileTypeDirectory
+#
+# Some sub-projects already cover their amalgamation by naming it in their
+# include.h guard, which is why this went unnoticed. Deriving the identifier
+# here with the same snakeCaseString() rule the sub-project's own
+# .mulle/etc/env/environment-project.sh uses fixes the rest without having to
+# edit every sub-project or maintain a list.
+#
+if( LIBRARY_COMPILE_TARGET)
+   foreach( SUB_PROJECT_NAME ${SUB_PROJECT_NAMES})
+      snakeCaseString( "${SUB_PROJECT_NAME}" SUB_PROJECT_IDENTIFIER)
+      string( TOUPPER "${SUB_PROJECT_IDENTIFIER}" SUB_PROJECT_UPCASE_IDENTIFIER)
+      if( NOT "${SUB_PROJECT_UPCASE_IDENTIFIER}" STREQUAL "${LIBRARY_UPCASE_IDENTIFIER}")
+         message( STATUS "Amalgamating sub-project ${SUB_PROJECT_NAME} as ${SUB_PROJECT_UPCASE_IDENTIFIER}_BUILD")
+         target_compile_definitions( "${LIBRARY_COMPILE_TARGET}" PRIVATE "${SUB_PROJECT_UPCASE_IDENTIFIER}_BUILD")
+         if( LIBRARY_STAGE2_TARGET)
+            target_compile_definitions( "${LIBRARY_STAGE2_TARGET}" PRIVATE "${SUB_PROJECT_UPCASE_IDENTIFIER}_BUILD")
+         endif()
+      endif()
+   endforeach()
+   unset( SUB_PROJECT_IDENTIFIER)
+   unset( SUB_PROJECT_UPCASE_IDENTIFIER)
+endif()
+
 # use LIBRARY_LINK_TARGET for linker options
 if( LINK_PHASE)
    target_link_options( "${LIBRARY_LINK_TARGET}" PUBLIC)
+
+   #
+   # CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS (DLL_EXPORT_ALL) is a no-op for the
+   # llvm-mingw toolchain: it is only implemented for MS linkers. The MinGW
+   # linker exports every defined symbol by default, but it stops doing so as
+   # soon as anything is explicitly dllexport'ed, which the block above now
+   # does. Ask for the full export surface explicitly, so that symbols which
+   # are still declared bare keep their export.
+   #
+   if( (WIN32 OR MINGW) AND NOT MSVC AND BUILD_SHARED_LIBS)
+      target_link_options( "${LIBRARY_LINK_TARGET}" PRIVATE "-Wl,--export-all-symbols")
+   endif()
 
    #
    # The idea is this is for non mulle-sde consumers to get the dependency
@@ -138,26 +197,11 @@ if( LINK_PHASE)
    #  ${CMAKE_CURRENT_BINARY_DIR}/include
    # )
 
-   # Automatic force-loading is intentionally disabled for external CMake
-   # consumers. They decide explicitly which libraries to link and how to
-   # force-load them. The former implementation is retained below for
-   # reference.
    #
-   # if( NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-   #    if( APPLE)
-   #       target_link_options( "${LIBRARY_LINK_TARGET}" INTERFACE
-   #          "-force_load" "$<TARGET_FILE:${LIBRARY_LINK_TARGET}>"
-   #       )
-   #    elseif( MSVC)
-   #       target_link_options( "${LIBRARY_LINK_TARGET}" INTERFACE
-   #          "-WHOLEARCHIVE:$<TARGET_FILE:${LIBRARY_LINK_TARGET}>"
-   #       )
-   #    else()
-   #       target_link_options( "${LIBRARY_LINK_TARGET}" INTERFACE
-   #          "-Wl,--whole-archive" "$<TARGET_FILE:${LIBRARY_LINK_TARGET}>" "-Wl,--no-whole-archive"
-   #       )
-   #    endif()
-   # endif()
+   # Force-link advertisement for add_subdirectory() consumers lives in
+   # AllLoadSupport.cmake, included below with the other add_subdirectory
+   # support modules.
+   #
 endif()
 
 include( InstallLibrary)
@@ -187,6 +231,18 @@ endif()
 if( LINK_PHASE)
    include( AddSubdirectorySupport)
    include( FindPackageSupport)
+
+   #
+   # AllLoadSupport declares MULLE_TRANSITIVE_LINKER_FLAGS, falling back to
+   # MULLE_TRANSITIVE_LINK_LIBRARIES. It exports the force-link requirement
+   # through an INTERFACE wrapper target, so it runs for both
+   # add_subdirectory() and find_package() consumers, not just subprojects.
+   # It is generic and shared; StacktraceSupport reacts to it and is specific
+   # to the mulle-stacktrace sources compiled here. Include it after
+   # AllLoadSupport, which sets MULLE_ALL_LOAD_ACTIVE.
+   #
+   include( AllLoadSupport)
+   include( StacktraceSupport)
 endif()
 
 include( FinalOutput OPTIONAL)

@@ -37,7 +37,7 @@ git submodule update --init
 
 # Create CMakeLists.txt
 cat > CMakeLists.txt << 'EOF'
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.24)
 project(submodule-test)
 add_subdirectory(mulle-core)
 add_subdirectory(mulle-core-all-load)

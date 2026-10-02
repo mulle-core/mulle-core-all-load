@@ -1,24 +1,32 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.24)
 project(test_external_consumer)
 
-# Simulate external consumer using add_subdirectory
+# Simulate external consumer using add_subdirectory, like a git submodule
+# consumer would. The dependency is added as a sibling subdirectory and must
+# come before mulle-core-all-load, which inherits its headers, definitions
+# and link targets.
+add_subdirectory( ../../../mulle-core ${CMAKE_CURRENT_BINARY_DIR}/mulle-core_build)
 add_subdirectory( ../.. mulle-core-all-load_build)
 
-# Check if the target exists after add_subdirectory
-if(TARGET mulle-core-all-load)
-    message(STATUS "Found target: mulle-core-all-load")
-    get_target_property(LINK_OPTIONS mulle-core-all-load INTERFACE_LINK_OPTIONS)
-    if(LINK_OPTIONS)
-        message(STATUS "Force-link flags: ${LINK_OPTIONS}")
-        file(WRITE "${CMAKE_BINARY_DIR}/force_link_detected.txt" "SUCCESS: ${LINK_OPTIONS}")
-    else()
-        message(STATUS "No force-link flags found")
-        file(WRITE "${CMAKE_BINARY_DIR}/force_link_detected.txt" "FAILED: No force-link flags")
-    endif()
-else()
-    message(STATUS "Target mulle-core-all-load not found")
-    file(WRITE "${CMAKE_BINARY_DIR}/force_link_detected.txt" "FAILED: Target not found")
+if(NOT TARGET mulle-core-all-load)
+    message(FATAL_ERROR "Target mulle-core-all-load not found after add_subdirectory")
 endif()
+if(NOT TARGET mulle-core-all-load-force)
+    message(FATAL_ERROR "Force-link wrapper mulle-core-all-load-force not found")
+endif()
+
+get_target_property(INTERFACE_LIBS mulle-core-all-load INTERFACE_LINK_LIBRARIES)
+if(NOT INTERFACE_LIBS MATCHES "mulle-core-all-load-force")
+    message(FATAL_ERROR "mulle-core-all-load does not reference its force-link wrapper: ${INTERFACE_LIBS}")
+endif()
+
+get_target_property(FORCE_LIBS mulle-core-all-load-force INTERFACE_LINK_LIBRARIES)
+if(NOT FORCE_LIBS MATCHES "LINK_LIBRARY:WHOLE_ARCHIVE")
+    message(FATAL_ERROR "Force-link wrapper does not whole-archive the library: ${FORCE_LIBS}")
+endif()
+
+message(STATUS "Force-link flags: ${FORCE_LIBS}")
+file(WRITE "${CMAKE_BINARY_DIR}/force_link_detected.txt" "SUCCESS: ${FORCE_LIBS}")
 
 # Create a simple test executable
 add_executable(test_consumer test_consumer.c)
