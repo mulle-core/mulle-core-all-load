@@ -8,7 +8,7 @@
 #
 cmake_minimum_required( VERSION 3.24...99.99) # for REAL_PATH and $<LINK_LIBRARY:...>
 
-project( mulle-core-all-load VERSION 0.8.2 LANGUAGES C)
+project( mulle-core-all-load VERSION 0.9.0 LANGUAGES C)
 
 # mulle-core-all-load is a force-linkable initialization library: its
 # atinit/atexit constructors must be whole-archived into every consumer, even
