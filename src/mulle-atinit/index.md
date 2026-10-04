@@ -7,7 +7,7 @@
 - Solves ordering and portability problems with ELF shared-library constructors and static initializers, whose sequencing across separate shared objects is unreliable. It supplies a deterministic, sorted execution in the executable's own constructor.
 - Key features: priority-based registration, stable mergesort at run time (equal priorities keep insertion order), thread-safe registration, test hooks (built with `MULLE_TEST`), and optional symbol lookup via `dlsym` for Windows dynamic builds.
 - A part of `mulle-core`. Depends on `mulle-thread` (mutex/once) and `mulle-dlfcn` (dynamic symbol lookup). It must be **statically linked** into the executable.
-- Current version: `MULLE__ATINIT_VERSION` is `0.3.2`.
+- Current version: `MULLE__ATINIT_VERSION` is `0.3.3`.
 
 ## 2. Key Concepts & Design Philosophy
 
@@ -27,7 +27,7 @@ The public API lives in one header, `src/mulle-atinit.h`. The whole library is C
 ### 3.1. `mulle-atinit.h`
 
 #### Version helpers
-- `#define MULLE__ATINIT_VERSION  ((0UL << 20) | (3 << 8) | 2)` — packed version (major.minor.patch) `0.3.2`.
+- `#define MULLE__ATINIT_VERSION  ((0UL << 20) | (3 << 8) | 3)` — packed version (major.minor.patch) `0.3.3`.
 
 ```
 static inline unsigned int   mulle_atinit_get_version_major( void)
@@ -223,5 +223,5 @@ static void   load( void)
 
 ## 8. Shortcut
 
-- This file was last modified in commit `b774e10` (2026-08-04, "maintenance: add copyright license headers to source files"), with earlier content from `a0b2cf6`, `3bc9304` (2026-04-10). Since that commit only two maintenance commits followed (`9b188cb`, `6a7b1c8`): build/tooling updates and a version bump of `MULLE__ATINIT_VERSION` from `0.3.1` to `0.3.2` in `src/mulle-atinit.h`. No public API signatures changed; this file was refreshed to fix the late-registration semantics description and make Example 2 compilable (manual declarations as in `test/10-static/prios.c`).
+- This file was last modified in commit `b774e10` (2026-08-04, "maintenance: add copyright license headers to source files"), with earlier content from `a0b2cf6`, `3bc9304` (2026-04-10). Since that commit only two maintenance commits followed (`9b188cb`, `6a7b1c8`): build/tooling updates and a version bump of `MULLE__ATINIT_VERSION` from `0.3.1` to `0.3.2` in `src/mulle-atinit.h`. A later patch bumped `MULLE__ATINIT_VERSION` from `0.3.2` to `0.3.3` in `src/mulle-atinit.h`, accompanied only by comment changes in the generated `src/reflect/` headers. No public API signatures changed; this file was refreshed to fix the late-registration semantics description and make Example 2 compilable (manual declarations as in `test/10-static/prios.c`).
 - Source of truth for the public API: `src/mulle-atinit.h`. Working examples: `test/10-static/`, `test/20-dynamic/`, `test/30-mergesort/`.
