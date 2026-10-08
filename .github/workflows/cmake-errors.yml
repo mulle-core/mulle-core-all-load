@@ -67,7 +67,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     # Set installation directory based on OS
     - name: Set install directory

@@ -1,6 +1,7 @@
 ## 0.9.0
 
 
+
 feature: propagate force-linking to `add_subdirectory` and `find_package` consumers
 
 * mulle-core-all-load now carries its force-link requirement through an INTERFACE wrapper target, so a plain `target_link_libraries(...` mulle-core-all-load) whole-archives the library for both subproject and installed consumers
