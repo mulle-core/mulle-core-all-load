@@ -25,7 +25,7 @@
     `ON`) controls it.
 - Relationship: a foundational part of `mulle-core`. Each constituent library
   is itself a `mulle-core` project whose sources are vendored in via `clib`
-  (`clibmode=hardlink`) under `src/<name>` and compiled directly into the
+  (`clibmode=copy`) under `src/<name>` and compiled directly into the
   amalgam. The amalgam also depends on `mulle-c11`, `mulle-allocator`,
   `mulle-thread`, `mulle-dlfcn`, and optionally `libbacktrace`.
 
@@ -412,8 +412,8 @@ Direct `mulle-sde` dependencies (from `.mulle/etc/sourcetree/config` and
 - `libbacktrace` — enables the `MULLE_STRACKTRACE_BACKEND_LIBBACKTRACE`
   stacktrace backend (optional at runtime, but listed as a dependency).
 
-Amalgamated constituent libraries (their sources are vendored into
-`src/<name>` via clib hardlinks and compiled into the archive):
+Amalgamated constituent libraries (their sources are copied into
+`src/<name>` via clib and compiled into the archive):
 
 - `mulle-atinit` (version 0.3.3)
 - `mulle-atexit` (version 0.2.1)
