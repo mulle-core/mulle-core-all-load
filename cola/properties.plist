@@ -10,7 +10,6 @@
       repo="mulle-core-all-load";
       homepage="https://github.com/mulle-core/mulle-core-all-load";
       license="BSD-3-Clause";
-      version="0.9.0";
    };
    dependencies =
    (
