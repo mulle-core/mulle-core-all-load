@@ -2,10 +2,20 @@ cmake_minimum_required(VERSION 3.24)
 project(test_external_consumer)
 
 # Simulate external consumer using add_subdirectory, like a git submodule
-# consumer would. The dependency is added as a sibling subdirectory and must
+# consumer would. The dependency is added as its own subdirectory and must
 # come before mulle-core-all-load, which inherits its headers, definitions
 # and link targets.
-add_subdirectory( ../../../mulle-core ${CMAKE_CURRENT_BINARY_DIR}/mulle-core_build)
+#
+# mulle-core is a dependency of this test project. mulle-sde keeps the
+# checkout of a dependency in the sourcetree stash (see `mulle-sde howto
+# testing`). Use MULLE_SOURCETREE_STASH_DIR when it is exported, and fall back
+# to the default "stash" directory of the test project otherwise.
+set(MULLE_SOURCETREE_STASH_DIR "$ENV{MULLE_SOURCETREE_STASH_DIR}")
+if(NOT MULLE_SOURCETREE_STASH_DIR)
+   set(MULLE_SOURCETREE_STASH_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../stash")
+endif()
+
+add_subdirectory("${MULLE_SOURCETREE_STASH_DIR}/mulle-core" ${CMAKE_CURRENT_BINARY_DIR}/mulle-core_build)
 add_subdirectory( ../.. mulle-core-all-load_build)
 
 if(NOT TARGET mulle-core-all-load)
