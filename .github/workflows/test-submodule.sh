@@ -48,6 +48,7 @@ EOF
 # Create main.c
 cat > main.c << 'EOF'
 #include <mulle-core-all-load/mulle-core-all-load.h>
+#include <mulle-core/mulle-core.h>
 
 int main() {
     // TODO: do something
