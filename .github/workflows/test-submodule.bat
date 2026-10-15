@@ -44,6 +44,7 @@ REM Create CMakeLists.txt
 REM Create main.c
 (
 echo #include ^<mulle-core-all-load/mulle-core-all-load.h^>
+echo #include ^<mulle-core/mulle-core.h^>
 echo.
 echo int main^(^) {
 echo     // TODO: test something
