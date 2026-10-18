@@ -68,38 +68,42 @@ file).
 
 
 
-### Add as subproject with cmake and git
+### Add as subproject with cmake
 
 [mulle-core](//github.com/mulle-core/mulle-core) is **not** bundled
-with mulle-core-all-load. Add both as sibling git submodules:
-
-``` bash
-git submodule add https://github.com/mulle-core/mulle-core.git stash/mulle-core
-git submodule add https://github.com/mulle-core/mulle-core-all-load.git stash/mulle-core-all-load
-git submodule update --init
-```
-
-Note that `--recursive` is neither needed nor wanted, mulle-core-all-load contains
-no submodules of its own.
-
-Add this to your `CMakeLists.txt`:
+with mulle-core-all-load. Add both with
+[FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html):
 
 ``` cmake
-add_subdirectory( stash/mulle-core)
-add_subdirectory( stash/mulle-core-all-load)
+include( FetchContent)
+
+set( MULLE__CORE_TAG "master" CACHE STRING "branch or tag to fetch mulle-core from")
+
+FetchContent_Declare( MULLE__CORE
+   GIT_REPOSITORY https://github.com/mulle-core/mulle-core.git
+   GIT_TAG        "${MULLE__CORE_TAG}")
+FetchContent_MakeAvailable( MULLE__CORE)
+
+set( MULLE__CORE__ALL__LOAD_TAG "master" CACHE STRING "branch or tag to fetch mulle-core-all-load from")
+
+FetchContent_Declare( MULLE__CORE__ALL__LOAD
+   GIT_REPOSITORY https://github.com/mulle-core/mulle-core-all-load.git
+   GIT_TAG        "${MULLE__CORE__ALL__LOAD_TAG}")
+FetchContent_MakeAvailable( MULLE__CORE__ALL__LOAD)
+
 target_link_libraries( ${PROJECT_NAME} PRIVATE mulle-core-all-load)
 ```
 
-`add_subdirectory( mulle-core)` must come **before**
-`add_subdirectory( mulle-core-all-load)`, because mulle-core-all-load depends on
+`FetchContent_MakeAvailable( MULLE__CORE)` must come **before**
+`FetchContent_MakeAvailable( MULLE__CORE__ALL__LOAD)`, because mulle-core-all-load depends on
 the `mulle-core` target and its headers.
 
 mulle-core-all-load is a **force-linkable** initialization library: it registers
 `atinit`/`atexit` callbacks that must end up in your binary even if no symbol of
-the library is referenced directly. The target created by `add_subdirectory`
-carries the necessary `INTERFACE` force-link options, so the
-`target_link_libraries( ${PROJECT_NAME} PRIVATE mulle-core-all-load)` above is
-sufficient. When linking mulle-core-all-load as an installed static library
+the library is referenced directly. The target created by
+`FetchContent_MakeAvailable` carries the necessary `INTERFACE` force-link options,
+so the `target_link_libraries( ${PROJECT_NAME} PRIVATE mulle-core-all-load)` above
+is sufficient. When linking mulle-core-all-load as an installed static library
 instead, force-link it explicitly:
 
 ``` sh
@@ -123,7 +127,7 @@ mulle-sde install --prefix /usr/local \
    https://github.com/mulle-core/mulle-core-all-load/archive/latest.tar.gz
 ```
 
-### Legacy Installation
+### Manual Installation
 
 Install the requirements:
 

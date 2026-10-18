@@ -40,38 +40,48 @@ file).
 {% endif %}
 
 
-### Add as subproject with cmake and git
+{%
+   identifier = [[project.repo uppercaseString] stringByReplacingOccurrencesOfString:@"-" withString:@"__"];
+   tag        = [identifier stringByAppendingString:@"_TAG"];
+   tagref     = [@"${" stringByAppendingString:tag];
+   tagref     = [tagref stringByAppendingString:@"}"];
+%}
+### Add as subproject with cmake
 
 [mulle-core](//github.com/{{ project.user }}/mulle-core) is **not** bundled
-with {{ project.repo }}. Add both as sibling git submodules:
-
-``` bash
-git submodule add https://github.com/{{ project.user }}/mulle-core.git stash/mulle-core
-git submodule add https://github.com/{{ project.user }}/{{ project.repo }}.git stash/{{ project.repo }}
-git submodule update --init
-```
-
-Note that `--recursive` is neither needed nor wanted, {{ project.repo }} contains
-no submodules of its own.
-
-Add this to your `CMakeLists.txt`:
+with {{ project.repo }}. Add both with
+[FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html):
 
 ``` cmake
-add_subdirectory( stash/mulle-core)
-add_subdirectory( stash/{{ project.repo }})
+include( FetchContent)
+
+set( MULLE__CORE_TAG "master" CACHE STRING "branch or tag to fetch mulle-core from")
+
+FetchContent_Declare( MULLE__CORE
+   GIT_REPOSITORY https://github.com/{{ project.user }}/mulle-core.git
+   GIT_TAG        "${MULLE__CORE_TAG}")
+FetchContent_MakeAvailable( MULLE__CORE)
+
+set( {{ identifier }}_TAG "master" CACHE STRING "branch or tag to fetch {{ project.repo }} from")
+
+FetchContent_Declare( {{ identifier }}
+   GIT_REPOSITORY https://github.com/{{ project.user }}/{{ project.repo }}.git
+   GIT_TAG        "{{ tagref }}")
+FetchContent_MakeAvailable( {{ identifier }})
+
 target_link_libraries( ${PROJECT_NAME} PRIVATE {{ project.repo }})
 ```
 
-`add_subdirectory( mulle-core)` must come **before**
-`add_subdirectory( {{ project.repo }})`, because {{ project.repo }} depends on
+`FetchContent_MakeAvailable( MULLE__CORE)` must come **before**
+`FetchContent_MakeAvailable( {{ identifier }})`, because {{ project.repo }} depends on
 the `mulle-core` target and its headers.
 
 {{ project.repo }} is a **force-linkable** initialization library: it registers
 `atinit`/`atexit` callbacks that must end up in your binary even if no symbol of
-the library is referenced directly. The target created by `add_subdirectory`
-carries the necessary `INTERFACE` force-link options, so the
-`target_link_libraries( ${PROJECT_NAME} PRIVATE {{ project.repo }})` above is
-sufficient. When linking {{ project.repo }} as an installed static library
+the library is referenced directly. The target created by
+`FetchContent_MakeAvailable` carries the necessary `INTERFACE` force-link options,
+so the `target_link_libraries( ${PROJECT_NAME} PRIVATE {{ project.repo }})` above
+is sufficient. When linking {{ project.repo }} as an installed static library
 instead, force-link it explicitly:
 
 ``` sh
