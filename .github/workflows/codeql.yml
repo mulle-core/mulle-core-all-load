@@ -21,6 +21,7 @@ on:
     
 env:
   BUILD_TYPE: release
+  MULLE_SDE_DEFAULT_VERSION: staging
   OTHER_PROJECTS: "mulle-c/mulle-c-developer;"
 
 jobs:

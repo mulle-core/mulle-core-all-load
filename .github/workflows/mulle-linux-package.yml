@@ -1,5 +1,8 @@
 name: Artifacts
 
+env:
+  MULLE_SDE_DEFAULT_VERSION: staging
+
 on:
   release:
      types: [published]
